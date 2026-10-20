@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 
+import connectDB from "./config/db.js";
 import healthRoutes from "./routes/health.routes.js";
 import testInputRoutes from "./routes/testInput.routes.js";
 
@@ -19,6 +20,20 @@ app.use(
 
 app.use(express.json());
 app.use(morgan("dev"));
+
+// Ensure DB connection for every request (essential for serverless)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Database connection failed",
+      error: error.message,
+    });
+  }
+});
 
 // API routes
 app.use("/api/v1/health", healthRoutes);
