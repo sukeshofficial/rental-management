@@ -14,7 +14,6 @@ import {
 import {
   authenticate,
   requireRole,
-  requirePermission,
 } from "../middleware/auth.middleware.js";
 
 const router = Router();

@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import crypto from "crypto";
+import crypto from "node:crypto";
 import User, { USER_ROLES, USER_STATUS } from "../models/user.model.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_development_secret_change_in_production";
@@ -153,7 +153,7 @@ export const updateUserProfile = async (userId, updates = {}) => {
   }
 
   // Detect any prohibited fields attempted to be modified
-  const prohibitedFieldsList = [
+  const prohibitedFieldsList = new Set([
     "role",
     "status",
     "email",
@@ -165,10 +165,10 @@ export const updateUserProfile = async (userId, updates = {}) => {
     "_id",
     "createdAt",
     "updatedAt",
-  ];
+  ]);
 
   const ignoredFields = Object.keys(updates).filter((key) =>
-    prohibitedFieldsList.includes(key)
+    prohibitedFieldsList.has(key)
   );
 
   // Only permit safe personal profile updates

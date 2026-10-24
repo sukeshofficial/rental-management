@@ -16,10 +16,12 @@ app.use(helmet());
 app.use(cookieParser());
 
 // Normalize allowed origins by trimming trailing slashes and splitting comma-separated URLs
-const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
-  .split(",")
-  .map((origin) => origin.trim().replace(/\/+$/, ""))
-  .filter(Boolean);
+const allowedOrigins = new Set(
+  (process.env.CLIENT_URL || "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim().replace(/[/]+$/, ""))
+    .filter(Boolean)
+);
 
 app.use(
   cors({
@@ -27,10 +29,10 @@ app.use(
       // Allow requests with no origin (like mobile apps, curl, or server-to-server)
       if (!origin) return callback(null, true);
 
-      const normalizedOrigin = origin.replace(/\/+$/, "");
+      const normalizedOrigin = origin.replace(/[/]+$/, "");
       if (
-        allowedOrigins.includes("*") ||
-        allowedOrigins.includes(normalizedOrigin) ||
+        allowedOrigins.has("*") ||
+        allowedOrigins.has(normalizedOrigin) ||
         process.env.NODE_ENV !== "production"
       ) {
         return callback(null, true);
@@ -53,7 +55,7 @@ app.use(async (req, res, next) => {
     await connectDB();
     next();
   } catch (error) {
-    res.status(500).json({
+    void res.status(500).json({
       success: false,
       message: "Database connection failed",
       error: error.message,

@@ -27,7 +27,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
       match: [
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
         "Please provide a valid email address",
       ],
       index: true,

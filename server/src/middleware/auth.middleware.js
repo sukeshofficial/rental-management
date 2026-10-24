@@ -11,12 +11,9 @@ export const authenticate = async (req, res, next) => {
     let token = null;
 
     // Check HTTP-only cookie first
-    if (req.cookies && req.cookies.token) {
+    if (req.cookies?.token) {
       token = req.cookies.token;
-    } else if (
-      req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer ")
-    ) {
+    } else if (req.headers.authorization?.startsWith("Bearer ")) {
       token = req.headers.authorization.split(" ")[1];
     }
 
