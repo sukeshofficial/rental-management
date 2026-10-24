@@ -3,14 +3,17 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 
+import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
 import healthRoutes from "./routes/health.routes.js";
 import testInputRoutes from "./routes/testInput.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 
 const app = express();
 
 // Security and middleware
 app.use(helmet());
+app.use(cookieParser());
 
 // Normalize allowed origins by trimming trailing slashes and splitting comma-separated URLs
 const allowedOrigins = (process.env.CLIENT_URL || "http://localhost:5173")
@@ -61,6 +64,7 @@ app.use(async (req, res, next) => {
 // API routes
 app.use("/api/v1/health", healthRoutes);
 app.use("/api/v1/test-input", testInputRoutes);
+app.use("/api/v1/auth", authRoutes);
 
 
 // Handle unknown routes
