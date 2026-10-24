@@ -304,9 +304,11 @@
                   "pm.test('Status code is 200 OK', function () {",
                   "    pm.response.to.have.status(200);",
                   "});",
-                  "pm.test('Role and status escalation attempts are ignored', function () {",
+                  "pm.test('Role and status escalation attempts are ignored and reported', function () {",
                   "    const jsonData = pm.response.json();",
                   "    pm.expect(jsonData.user.role).to.eql('customer');",
+                  "    pm.expect(jsonData.user.status).to.eql('active');",
+                  "    pm.expect(jsonData.ignoredFields).to.include.members(['role', 'status']);",
                   "});"
                 ],
                 "type": "text/javascript"

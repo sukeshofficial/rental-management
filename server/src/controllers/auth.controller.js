@@ -117,13 +117,23 @@ export const getMe = async (req, res) => {
  */
 export const updateMe = async (req, res) => {
   try {
-    const updatedUser = await authService.updateUserProfile(req.user._id, req.body);
+    const { user: updatedUser, ignoredFields } =
+      await authService.updateUserProfile(req.user._id, req.body);
 
-    return res.status(200).json({
+    const responsePayload = {
       success: true,
-      message: "Profile updated successfully",
+      message:
+        ignoredFields.length > 0
+          ? `Profile updated. Prohibited fields were ignored: ${ignoredFields.join(", ")}`
+          : "Profile updated successfully",
       user: updatedUser,
-    });
+    };
+
+    if (ignoredFields.length > 0) {
+      responsePayload.ignoredFields = ignoredFields;
+    }
+
+    return res.status(200).json(responsePayload);
   } catch (error) {
     return res.status(error.statusCode || 500).json({
       success: false,

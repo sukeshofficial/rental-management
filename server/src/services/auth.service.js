@@ -142,14 +142,34 @@ export const getUserProfile = async (userId) => {
 /**
  * Update permitted profile fields.
  * Prevents mass-assignment of role, status, email, or password.
+ * Returns updated user and any prohibited fields that were ignored.
  */
-export const updateUserProfile = async (userId, updates) => {
+export const updateUserProfile = async (userId, updates = {}) => {
   const user = await User.findById(userId);
   if (!user) {
     const error = new Error("User not found");
     error.statusCode = 404;
     throw error;
   }
+
+  // Detect any prohibited fields attempted to be modified
+  const prohibitedFieldsList = [
+    "role",
+    "status",
+    "email",
+    "password",
+    "passwordResetToken",
+    "passwordResetExpires",
+    "emailVerified",
+    "id",
+    "_id",
+    "createdAt",
+    "updatedAt",
+  ];
+
+  const ignoredFields = Object.keys(updates).filter((key) =>
+    prohibitedFieldsList.includes(key)
+  );
 
   // Only permit safe personal profile updates
   if (updates.name && typeof updates.name === "string" && updates.name.trim()) {
@@ -160,7 +180,10 @@ export const updateUserProfile = async (userId, updates) => {
   }
 
   await user.save();
-  return user.toSafeObject();
+  return {
+    user: user.toSafeObject(),
+    ignoredFields,
+  };
 };
 
 /**
