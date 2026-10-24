@@ -1,45 +1,60 @@
-import { Tooltip as TooltipPrimitive } from "@base-ui/react/tooltip"
-import { cn } from "cn"
+import * as React from "react"
+import { Tooltip as BaseTooltip } from "@base-ui/react/tooltip"
+import { cn } from "@/lib/utils"
 
-function TooltipProvider({ delay = 200, children, ...props }) {
+// Thin wrappers over @base-ui/react Tooltip — API used by mode-toggle.jsx:
+//   <TooltipProvider delay={...}>
+//     <Tooltip>
+//       <TooltipTrigger render={<Button .../>}>...</TooltipTrigger>
+//       <TooltipContent side align sideOffset>...</TooltipContent>
+//     </Tooltip>
+//   </TooltipProvider>
+
+function TooltipProvider({ delay, children, ...props }) {
   return (
-    <TooltipPrimitive.Provider delay={delay} {...props}>
+    <BaseTooltip.Provider delay={delay} {...props}>
       {children}
-    </TooltipPrimitive.Provider>
+    </BaseTooltip.Provider>
   )
 }
 
 function Tooltip({ children, ...props }) {
-  return <TooltipPrimitive.Root {...props}>{children}</TooltipPrimitive.Root>
-}
-
-function TooltipTrigger({ className, ...props }) {
-  return <TooltipPrimitive.Trigger className={className} {...props} />
-}
-
-function TooltipContent({
-  className,
-  side = "top",
-  sideOffset = 6,
-  children,
-  ...props
-}) {
   return (
-    <TooltipPrimitive.Portal>
-      <TooltipPrimitive.Positioner side={side} sideOffset={sideOffset}>
-        <TooltipPrimitive.Popup
+    <BaseTooltip.Root {...props}>
+      {children}
+    </BaseTooltip.Root>
+  )
+}
+
+function TooltipTrigger({ render, children, ...props }) {
+  return (
+    <BaseTooltip.Trigger render={render} {...props}>
+      {children}
+    </BaseTooltip.Trigger>
+  )
+}
+
+const TooltipContent = React.forwardRef(function TooltipContent(
+  { className, side = "top", align = "center", sideOffset = 4, children, ...props },
+  ref
+) {
+  return (
+    <BaseTooltip.Portal>
+      <BaseTooltip.Positioner side={side} alignment={align} sideOffset={sideOffset}>
+        <BaseTooltip.Popup
+          ref={ref}
           className={cn(
-            "z-50 overflow-hidden rounded-md bg-primary px-3 py-1.5 text-xs text-primary-foreground shadow-md animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-95",
+            "z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-sm text-popover-foreground shadow-md",
             className
           )}
           {...props}
         >
           {children}
-          <TooltipPrimitive.Arrow className="fill-primary size-2" />
-        </TooltipPrimitive.Popup>
-      </TooltipPrimitive.Positioner>
-    </TooltipPrimitive.Portal>
+        </BaseTooltip.Popup>
+      </BaseTooltip.Positioner>
+    </BaseTooltip.Portal>
   )
-}
+})
+TooltipContent.displayName = "TooltipContent"
 
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
