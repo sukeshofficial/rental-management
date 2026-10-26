@@ -10,7 +10,6 @@ import { PasswordStrengthIndicator } from "@/components/ui/auth/password-strengt
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { signup } from "@/services/authService"
 import ProfileAvatar from "@/components/ui/profileavatar"
-import OTPDialog from "@/components/ui/auth/otpdialog"
 
 export default function SignupPage() {
     const navigate = useNavigate()
@@ -24,9 +23,6 @@ export default function SignupPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
     const [confirmError, setConfirmError] = useState("")
-    const [isOtpOpen, setIsOtpOpen] = useState(false)
-    const [registrationComplete, setRegistrationComplete] = useState(false)
-    const [registeredEmail, setRegisteredEmail] = useState("")
 
     const PasswordToggle = (
         <div className="pointer-events-none flex items-center">
@@ -58,13 +54,6 @@ export default function SignupPage() {
         setError("")
         setConfirmError("")
 
-        // If the user closed the dialog after signup, reopen it without
-        // submitting the registration request a second time.
-        if (registrationComplete) {
-            setIsOtpOpen(true)
-            return
-        }
-
         if (!email.trim() || !password || !confirmPassword) {
             setError("All fields are required.")
             return
@@ -78,9 +67,7 @@ export default function SignupPage() {
         try {
             setLoading(true)
             await signup(email.trim(), password, avatarFile)
-            setRegisteredEmail(email.trim())
-            setRegistrationComplete(true)
-            setIsOtpOpen(true)
+            navigate("/dashboard")
         } catch (err) {
             console.error("❌ Signup failed:", err);
             console.error("HTTP status:", err?.response?.status);
@@ -177,7 +164,7 @@ export default function SignupPage() {
                             />
 
                             <AuthSubmitButton
-                                label={registrationComplete ? "Verify Email" : "Create Account"}
+                                label="Create Account"
                                 loading={loading}
                                 loadingText="Creating account…"
                                 className="mt-2 w-full bg-white text-neutral-900 border-white hover:bg-neutral-100 uppercase tracking-widest"
@@ -191,11 +178,6 @@ export default function SignupPage() {
                     </CardContent>
                 </Card>
             </div>
-            <OTPDialog
-                email={registeredEmail || email.trim()}
-                isOpen={isOtpOpen}
-                onClose={() => setIsOtpOpen(false)}
-            />
         </>
     )
 }

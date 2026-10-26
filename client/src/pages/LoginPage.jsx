@@ -8,9 +8,8 @@ import { AuthLink } from "@/components/ui/auth/auth-link"
 import { AuthSubmitButton } from "@/components/ui/auth/auth-submit-button"
 import { BrandTitle } from "@/components/ui/auth/brand-title"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { login, resendOTP } from "@/services/authService"
+import { login } from "@/services/authService"
 import ProfileAvatar from "@/components/ui/profileavatar"
-import OTPDialog from "@/components/ui/auth/otpdialog"
 
 export default function LoginPage() {
     const navigate = useNavigate()
@@ -20,8 +19,6 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
-    const [needsEmailVerification, setNeedsEmailVerification] = useState(false)
-    const [isOtpOpen, setIsOtpOpen] = useState(false)
 
     const handleSubmit = async (e) => {
         e.preventDefault()
@@ -34,29 +31,10 @@ export default function LoginPage() {
 
         try {
             setLoading(true)
-
-            // Once the backend identifies an unverified email, the next click
-            // sends a fresh OTP and opens the dialog instead of trying login again.
-            if (needsEmailVerification) {
-                await resendOTP(email.trim())
-                setIsOtpOpen(true)
-                return
-            }
-
             await login(email.trim(), password)
-            navigate("/")
+            navigate("/dashboard")
         } catch (err) {
-            const status = err?.response?.status
             const msg = err?.response?.data?.message ?? "Login failed. Please try again."
-            const indicatesUnverifiedEmail =
-                status === 403 && /verify your email|email\s+not\s+verified|unverified/i.test(msg)
-
-            if (indicatesUnverifiedEmail) {
-                setNeedsEmailVerification(true)
-                setError("Your email is not verified. Select Verify OTP to receive a code.")
-                return
-            }
-
             setError(msg)
         } finally {
             setLoading(false)
@@ -106,10 +84,7 @@ export default function LoginPage() {
                                 type="email"
                                 placeholder="you@example.com"
                                 value={email}
-                                onChange={(e) => {
-                                    setEmail(e.target.value)
-                                    setNeedsEmailVerification(false)
-                                }}
+                                onChange={(e) => setEmail(e.target.value)}
                                 autoComplete="email"
                                 required
                                 inputClassName="bg-neutral-800 border-neutral-700 text-white placeholder:text-neutral-500 focus-visible:border-blue-500"
@@ -137,9 +112,9 @@ export default function LoginPage() {
                             </div>
 
                             <AuthSubmitButton
-                                label={needsEmailVerification ? "Verify OTP" : "Sign In"}
+                                label="Sign In"
                                 loading={loading}
-                                loadingText={needsEmailVerification ? "Sending OTP…" : "Signing in…"}
+                                loadingText="Signing in…"
                                 className="mt-2 w-full bg-white text-neutral-900 border-white hover:bg-neutral-100 uppercase tracking-widest"
                             />
                         </form>
@@ -151,11 +126,6 @@ export default function LoginPage() {
                     </CardContent>
                 </Card>
             </div>
-            <OTPDialog
-                email={email.trim()}
-                isOpen={isOtpOpen}
-                onClose={() => setIsOtpOpen(false)}
-            />
         </>
     )
 }
