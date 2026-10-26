@@ -1,0 +1,463 @@
+# TASK: Redesign Reusable Rental Management Authentication UI Components
+
+## 1. Objective
+
+Redesign the existing Login and Registration UI components for our Rental Management application using the attached visual references and the existing `frontend-skill.md`.
+
+The references establish the intended visual direction:
+- Dark, premium, cinematic styling inspired by the supplied authentication designs.
+- An equivalent polished light theme.
+- A split-screen composition with a rental-property visual panel and an authentication form area.
+- Consistent typography, refined input fields, clear hierarchy, restrained borders, and prominent primary actions.
+- Purple/blue accent styling where appropriate to the supplied visual references.
+
+The original Excalidraw mockup defines the required authentication fields and actions. Do not import additional features from the reference product.
+
+**Primary objective: Build modular, reusable React JSX components that can be integrated into authentication layouts and reused on other pages through well-designed props.**
+
+Do not treat this as a one-off screenshot recreation. The implementation must follow a coherent design system and the existing frontend architecture.
+
+---
+
+## 2. Mandatory rules before implementation
+
+### A. Inspect the existing project first
+
+Inspect the frontend source code before making changes.
+
+Review:
+- `frontend/package.json`
+- `frontend/src/components/ui/`
+- Existing Login and Registration components, if present
+- Existing `ComponentTestBed`
+- Existing shadcn/ui primitives
+- Global styles, CSS variables, Tailwind configuration, and theme implementation
+- Existing font imports, typography conventions, spacing tokens, radii, shadows, and colors
+- Existing routes and application structure
+- Available images and other local assets
+
+Identify which components already exist and determine how they are currently used.
+
+Existing components include or may include:
+
+- `BrandTitle`
+- `HomeButton`
+- `AuthField`
+- `AuthSubmitButton`
+- `AuthLink`
+- `PasswordStrengthIndicator`
+
+Reuse these components when they already meet the requirement. Extend their props or styling only when necessary. Do not create duplicate versions of components that already provide the required functionality.
+
+### B. Follow the existing design system first
+
+The existing project is the primary source of truth for implementation conventions.
+
+Inspect the established typography, spacing, shape, color, input, button, and theme patterns before deciding what needs to change.
+
+Apply the supplied references as the visual direction for this explicit redesign. If that direction requires changes to the current design system, introduce them deliberately through shared tokens and reusable component variants rather than scattered, page-specific styling.
+
+Do not introduce a new font, unrelated visual style, or competing theme mechanism without a clear reason.
+
+### C. Preserve the technology stack
+
+- Use React with JavaScript and JSX.
+- Use `.jsx` for new custom React components.
+- Do not introduce TypeScript, `.tsx`, interfaces, or TypeScript annotations.
+- Reuse the existing shadcn/ui primitives and utilities.
+- Preserve existing imports, path aliases, routing, and project conventions.
+- Do not install new libraries unless existing project capabilities cannot satisfy a genuine requirement.
+- Do not replace or reinitialize the existing frontend application.
+
+Before installing anything, determine which dependencies and primitives are already available.
+
+---
+
+## 3. Reference hierarchy and required functionality
+
+Use the attached references according to this priority:
+
+1. The Excalidraw sketch determines which fields, links, and actions are required.
+2. The supplied polished authentication screenshots determine the visual direction and split-screen composition.
+3. The generated four-screen light/dark reference illustrates how the design direction can be applied to both authentication flows.
+4. The existing project design system determines how the styling and reusable component APIs are implemented.
+5. `frontend-skill.md` governs accessibility, responsiveness, component quality, and visual verification.
+
+When references conflict, preserve the required authentication functionality and follow the selected visual direction without inventing additional features.
+
+### Login requirements
+
+Include only the following authentication elements:
+
+- Rental Management brand title.
+- Home button.
+- Welcome or sign-in heading and optional supporting subtitle.
+- Email input.
+- Password input.
+- Password visibility control if appropriate to the reference.
+- Sign In CTA.
+- Registration link with supporting account text.
+- Forgot username / password link.
+
+### Registration requirements
+
+Include only the following authentication elements:
+
+- Rental Management brand title.
+- Home button.
+- Registration heading and optional supporting subtitle.
+- Email input.
+- Name input.
+- Phone input.
+- Password input.
+- Password-strength indicator.
+- Confirm Password input.
+- Sign Up or Register CTA.
+- Login link with supporting account text.
+
+The password-strength indicator must reflect its supplied state or the existing password-strength logic. Do not build an unnecessary authentication or password-security subsystem.
+
+### Explicit exclusions
+
+Do not introduce:
+
+- Google login.
+- GitHub login.
+- Other social authentication providers.
+- Profile-picture upload.
+- Remember-me checkboxes.
+- Security badges or encryption claims.
+- Fake testimonials, fabricated usage metrics, or invented customer statistics.
+- Unrequested fields or account features.
+
+The form must not inherit unrelated functionality merely because it appears in the visual references.
+
+The registration CTA must say **SIGN UP**, **REGISTER**, or **CREATE ACCOUNT**, not SIGN IN.
+
+---
+
+## 4. Layout and visual direction
+
+Use the supplied reference screenshots as the visual guide.
+
+### Desktop composition
+
+Design the authentication experience as a balanced split-screen composition.
+
+**Promotional/brand panel:**
+- Rental Management identity.
+- A concise headline appropriate to rental management.
+- Short supporting copy describing the product without fabricated claims.
+- A suitable existing rental-property image if one is already available.
+- A restrained overlay or surface treatment to maintain readable text.
+- Consistent alignment and spacing.
+
+**Authentication region:**
+- Form heading and optional subtitle.
+- A clean, appropriately sized form surface.
+- Fields with consistent dimensions and spacing.
+- A clear primary CTA.
+- Relevant account-navigation links.
+- Home action, placed consistently with the established header or reference composition.
+
+The promotional panel should communicate the Rental Management product, not reproduce SEYAL branding, developer-community copy, or unrelated statistics.
+
+Avoid introducing decorative content merely to fill empty space.
+
+### Typography
+
+Inspect and preserve the existing project font system where appropriate.
+
+Establish consistent roles for:
+- Page heading.
+- Supporting subtitle.
+- Field label.
+- Input text.
+- Placeholder.
+- Primary CTA.
+- Secondary supporting text.
+- Links.
+
+The visual references use a strong technical typography character with a monospaced influence. Adopt that character through the existing fonts or a justified, minimal extension to the typography system.
+
+Do not introduce arbitrary font sizes or font families independently in each component.
+
+### Shapes and controls
+
+Maintain a coherent styling system for:
+
+- Input heights and corner radii.
+- Button heights, radii, and padding.
+- Border weights.
+- Card or form-surface treatments.
+- Focus rings.
+- Icon sizing and alignment.
+- Field spacing and label positioning.
+
+Reuse existing shadcn/ui Button, Input, and Label primitives wherever appropriate.
+
+Use consistent interaction states rather than creating separate, visually unrelated field and button implementations for Login and Registration.
+
+---
+
+## 5. Implement both light and dark themes
+
+Both themes must be deliberately designed and usable.
+
+Do not treat light mode as a simple inversion of dark mode.
+
+### Dark theme
+
+Follow the supplied dark references:
+- Deep charcoal or near-black backgrounds.
+- Subtle separation between the main surface and form surface.
+- High-contrast primary text.
+- Muted but readable secondary text.
+- Deliberate purple/blue accent treatment.
+- Subtle borders and restrained depth.
+- Visible input and keyboard-focus boundaries.
+
+Avoid excessive glow, pure-black surfaces everywhere, or low-contrast labels.
+
+### Light theme
+
+Create the corresponding light variant:
+- Light neutral backgrounds.
+- White or appropriately elevated form surfaces.
+- Dark, readable primary text.
+- Clear secondary text and labels.
+- Consistent purple/blue accents.
+- Neutral input borders and clear focus rings.
+- Subtle surface separation without unnecessary shadows.
+
+The light theme should preserve the same overall visual identity as the dark theme.
+
+### Theme implementation
+
+Use the existing theme provider, CSS variables, and semantic tokens if available.
+
+Reuse or establish appropriate tokens for:
+- `background`
+- `foreground`
+- `surface`
+- `surface-muted`
+- `primary`
+- `primary-foreground`
+- `muted-foreground`
+- `border`
+- `input`
+- `ring`
+- Relevant error and success states
+
+Keep shared component styling theme-aware. Do not hardcode a dark-only background or text color into a component that is intended to support both modes.
+
+If the project already has a theme switcher, preserve and reuse it. Do not create a competing theme system.
+
+If the theme mechanism supports runtime switching, all applicable components must update without requiring duplicated light and dark implementations.
+
+Do not add a theme toggle unless it belongs in the existing application or the task explicitly requires one.
+
+---
+
+## 6. Build modular components with reusable props
+
+Inspect the existing components before creating anything new.
+
+### Existing shared components to reuse or refine
+
+**`BrandTitle`**
+- Configurable brand text.
+- Optional link destination.
+- Optional styling override.
+- Consistent theme-aware typography.
+
+**`HomeButton`**
+- Configurable label and optional navigation destination.
+- Click callback where appropriate.
+- Disabled state and styling override.
+- Consistent theme-aware button appearance.
+
+**`AuthField`**
+- Configurable `id`, `name`, `label`, `type`, `placeholder`, `layout`, `value`, `defaultValue`, and `onChange`.
+- Support for appropriate native HTML input attributes.
+- Required and disabled states.
+- Validation error and accessible error description.
+- Optional leading icon and trailing adornment if required by the reference.
+- Optional password visibility behavior if this responsibility fits the component API.
+- Shared typography, sizing, focus, border, and spacing conventions.
+
+Support horizontal and stacked label arrangements if the existing use cases require them.
+
+**`AuthSubmitButton`**
+- Configurable `label`, `type`, `onClick`, `disabled`, and `loading`.
+- Optional loading label and styling override.
+- Consistent primary action styling.
+- Correct native button semantics.
+
+Use SIGN IN for Login and the configurable registration label for Registration.
+
+**`AuthLink`**
+- Configurable label and destination.
+- Optional callback when appropriate.
+- Correct semantic link behavior.
+- Consistent link styling, focus, and hover states.
+
+**`PasswordStrengthIndicator`**
+- A configurable strength state such as `empty`, `weak`, `medium`, or `strong`.
+- Optional visible strength label.
+- Appropriate visual changes driven by props.
+- Consistent theme-aware styling.
+
+Do not create separate custom versions of these components for each authentication page.
+
+### Additional components, only when justified
+
+Create new shared components only if they represent a genuinely reusable responsibility missing from the existing component library.
+
+Possible examples:
+
+- `AuthBrandPanel`: reusable promotional panel with configurable headline, description, brand content, and optional existing image asset.
+- `AuthFormHeader`: configurable heading and subtitle.
+- A small password-visibility control if it cannot reasonably be handled by the existing `AuthField`.
+
+Do not create trivial wrappers simply to increase the number of components.
+
+### Prop API rules
+
+Every new or modified custom component must follow these rules:
+
+1. Use ordinary JavaScript props and JSX.
+2. Give props meaningful, predictable names.
+3. Provide sensible defaults where appropriate.
+4. Use named variants and sizes instead of hardcoding visual differences.
+5. Preserve native HTML behavior and accessibility.
+6. Accept `className` or another intentional styling extension point where useful.
+7. Keep component-specific business logic out of purely presentational components.
+8. Avoid hidden state that conflicts with parent-controlled props.
+9. Do not expose unnecessary props that undermine design consistency.
+10. Reuse the same component API wherever the same UI responsibility appears.
+
+A caller should be able to customize the label, field type, validation state, or CTA text without modifying the component implementation.
+
+Components should look consistent by default because they consume shared tokens—not because every page manually passes a different set of styling classes.
+
+---
+
+## 7. Component scope and page integration
+
+This task concerns reusable authentication components and their application in the existing Login and Registration UI.
+
+- If Login and Registration pages already exist, update their use of the shared components without unnecessarily replacing their routing or authentication logic.
+- If the existing task is restricted to component development, implement and refine the components only; do not independently create full application layouts or routes.
+- Do not modify backend authentication services, API contracts, or submission logic as part of this visual redesign unless explicitly required.
+- Preserve the existing application structure and teammate integration boundaries.
+- Reuse shared components through props and composition rather than duplicating their markup and styling.
+
+If `ComponentTestBed` already exists, use it to preview and compare the individual components. Preserve its route structure unless a route change is explicitly needed.
+
+Do not change unrelated pages or application functionality.
+
+---
+
+## 8. Responsive behavior
+
+The split-screen reference is primarily a desktop composition. Adapt it deliberately for narrower screens.
+
+### Desktop
+- Preserve the side-by-side brand and authentication regions.
+- Prevent the form from becoming excessively wide.
+- Maintain consistent margins and whitespace.
+- Keep the primary action and account links easy to locate.
+
+### Tablet
+- Rebalance the panel proportions when needed.
+- Prevent form fields from becoming cramped.
+- Reduce promotional content density if necessary while keeping the essential form usable.
+
+### Mobile
+- Reflow the authentication experience into a usable single-column structure.
+- Preserve the brand identity and form hierarchy.
+- Keep all required fields and account links available.
+- Prevent horizontal overflow.
+- Ensure the keyboard does not obscure the active field or important actions.
+- Make password controls and other interactive elements usable by touch.
+
+Use the project's established responsive conventions and test representative narrow, intermediate, and desktop viewports when browser tools are available.
+
+Do not claim responsiveness has been verified unless the relevant rendered layouts have actually been inspected.
+
+---
+
+## 9. Accessibility and interaction states
+
+Ensure the components support the applicable states:
+
+- Default.
+- Hover.
+- Focus-visible.
+- Active.
+- Disabled.
+- Loading.
+- Validation error.
+- Password visibility.
+- Password-strength levels.
+
+Requirements:
+- Associate labels with inputs.
+- Provide accessible names for icon-only controls.
+- Keep keyboard focus visible.
+- Use semantic links and buttons.
+- Associate validation messages with their inputs.
+- Ensure errors are understandable without relying on color alone.
+- Maintain readable contrast in both themes.
+- Respect reduced-motion preferences.
+- Preserve logical keyboard navigation.
+
+Do not create decorative controls that appear interactive but have no behavior.
+
+Do not invent successful authentication responses or alter existing form submission behavior.
+
+---
+
+## 10. Visual verification and refinement
+
+Follow the visual quality assurance workflow in `frontend-skill.md`.
+
+Before marking the task complete:
+
+1. Run the existing frontend development server or appropriate project checks where available.
+2. Inspect the actual rendered UI against the supplied visual references.
+3. Compare the Login and Registration component styling.
+4. Verify both light and dark modes.
+5. Inspect responsive behavior at narrow, intermediate, and desktop sizes.
+6. Check input alignment, label spacing, typography, button proportions, borders, and form density.
+7. Test applicable hover, focus, disabled, loading, validation, and password-strength states.
+8. Check browser console output and available build or lint scripts.
+9. Fix observed discrepancies and repeat the relevant checks.
+
+Correct functional and layout problems before minor decorative polish.
+
+Do not claim that a build, responsive test, accessibility check, or visual comparison passed unless it was actually performed.
+
+---
+
+## 11. Final report
+
+At completion, report:
+
+- The existing components reused.
+- The components created or modified.
+- The key props introduced or refined.
+- The shared tokens or theme styles reused or changed.
+- How the light and dark themes are supported.
+- Which routes or layouts were changed, if any.
+- Which verification steps were actually performed.
+- Any remaining issues or limitations.
+
+## Definition of done
+
+The redesigned authentication components must match the supplied visual direction while preserving the exact required Login and Registration functionality.
+
+Both themes must remain coherent. All shared components must have sensible, reusable prop APIs, respect the existing frontend conventions, and remain suitable for integration into other page layouts.
+
+**Final rule: Follow the reference style, preserve the required fields, reuse the existing design system, and make consistency automatic through shared tokens and reusable components—not manual styling repeated across pages.**
