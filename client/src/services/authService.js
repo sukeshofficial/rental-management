@@ -211,6 +211,17 @@ export async function resetPassword(arg1, arg2, arg3) {
 }
 
 /**
+ * 8b. Verify reset token validity
+ * GET /api/v1/auth/verify-reset-token?token=...
+ */
+export async function verifyResetToken(token) {
+    const { data } = await api.get(`${AUTH_BASE_URL}/verify-reset-token`, {
+        params: { token },
+    });
+    return data;
+}
+
+/**
  * 9. Logout
  * POST /api/v1/auth/logout
  * 

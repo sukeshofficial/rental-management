@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import crypto from "node:crypto";
 import User, { USER_ROLES, USER_STATUS } from "../models/user.model.js";
+import { sendPasswordResetEmail } from "./email.service.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_development_secret_change_in_production";
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
@@ -210,7 +211,17 @@ export const requestPasswordRecovery = async (email) => {
     user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
     await user.save({ validateBeforeSave: false });
 
-    // Note: Outbound email service would dispatch resetToken securely here.
+    // Send secure password reset email
+    try {
+      await sendPasswordResetEmail({
+        to: user.email,
+        name: user.name,
+        resetToken,
+      });
+    } catch (emailErr) {
+      console.error("❌ Failed to send password reset email:", emailErr?.message);
+      // Re-throw or log safely to ensure server resilience
+    }
   }
 
   // Return generic response regardless of whether email exists to prevent enumeration
@@ -255,4 +266,17 @@ export const resetPasswordWithToken = async (token, newPassword) => {
   return {
     message: "Password has been reset successfully. Please log in with your new credentials.",
   };
+};
+
+/**
+ * Verify whether a reset token is valid and unexpired without resetting the password yet.
+ */
+export const verifyResetToken = async (token) => {
+  if (!token) return false;
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: new Date() },
+  });
+  return Boolean(user);
 };

@@ -8,6 +8,7 @@ import {
   updateMe,
   forgotPassword,
   resetPassword,
+  verifyResetToken,
   staffDashboardOverview,
   testCustomerResource,
 } from "../controllers/auth.controller.js";
@@ -36,6 +37,24 @@ router.post("/login", authLimiter, login);
 router.post("/logout", authenticate, logout);
 router.post("/forgot-password", authLimiter, forgotPassword);
 router.post("/reset-password", authLimiter, resetPassword);
+router.get("/verify-reset-token", verifyResetToken);
+
+// Development visual preview for email template
+if (process.env.NODE_ENV !== "production") {
+  router.get("/preview/password-reset", async (req, res) => {
+    const { generatePasswordResetTemplate } = await import("../services/email.service.js");
+    const sampleHtml = generatePasswordResetTemplate({
+      name: req.query.name || "Alex Morgan",
+      resetUrl: `${process.env.CLIENT_URL || "http://localhost:5173"}/reset-password?token=sample_demo_token_1234567890abcdef&email=${encodeURIComponent(
+        req.query.email || "alex.morgan@example.com"
+      )}`,
+      expirationHours: 1,
+      year: new Date().getFullYear(),
+    });
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    return res.status(200).send(sampleHtml);
+  });
+}
 
 // Authenticated current-user routes
 router.get("/me", authenticate, getMe);

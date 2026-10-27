@@ -164,12 +164,15 @@ export const forgotPassword = async (req, res) => {
 };
 
 /**
- * Reset Password
+ * Reset Password (POST /api/v1/auth/reset-password)
+ * Accepts { token, newPassword } or { token, password }
  */
 export const resetPassword = async (req, res) => {
   try {
-    const { token, newPassword } = req.body;
-    const result = await authService.resetPasswordWithToken(token, newPassword);
+    const { token, newPassword, password } = req.body;
+    const effectivePassword = newPassword || password;
+
+    const result = await authService.resetPasswordWithToken(token, effectivePassword);
 
     return res.status(200).json({
       success: true,
@@ -179,6 +182,36 @@ export const resetPassword = async (req, res) => {
     return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message || "Failed to reset password",
+    });
+  }
+};
+
+/**
+ * Validate Password Reset Token (GET /api/v1/auth/verify-reset-token)
+ * Checks if the reset token exists and has not expired.
+ */
+export const verifyResetToken = async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        valid: false,
+        message: "Reset token is required",
+      });
+    }
+
+    const isValid = await authService.verifyResetToken(token);
+    return res.status(200).json({
+      success: true,
+      valid: isValid,
+      message: isValid ? "Token is valid" : "Invalid or expired token",
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      valid: false,
+      message: error.message || "Failed to verify token",
     });
   }
 };
