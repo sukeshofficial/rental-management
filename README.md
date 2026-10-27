@@ -195,7 +195,10 @@ This project is proprietary and built for Rental Management. All rights reserved
 ---
 
 <p align="center">
-  <a href="https://sonarcloud.io/summary/new_code?id=sukeshofficial_rental-management2">
-    <img src="https://sonarcloud.io/images/project_badges/sonarcloud-dark.svg" alt="SonarQube Cloud" />
+  <img src="https://sonarcloud.io/images/project_badges/sonarcloud-dark.svg" alt="SonarQube Cloud" />
+  <a href="https://sonarcloud.io/api/project_badges/quality_gate?project=sukeshofficial_rental-management2">
   </a>
+
+[![Quality gate](https://sonarcloud.io/api/project_badges/quality_gate?project=sukeshofficial_rental-management2)](https://sonarcloud.io/summary/new_code?id=sukeshofficial_rental-management2)
+
 </p>
