@@ -3,15 +3,68 @@ import nodemailer from "nodemailer";
 /**
  * HTML Escaping helper to prevent XSS or malformed markup in email templates.
  */
-function escapeHtml(string) {
-  if (string === null || string === undefined) return "";
-  return String(string)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+const escapeHtml = (value = "") =>
+  String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+
+const sanitizePlainText = (value = "") =>
+  String(value)
+    .replaceAll("\u0000", "")
+    .replaceAll("\r", "")
+    .replaceAll("\n", " ")
+    .replaceAll("\t", " ")
+    .trim();
+
+const sanitizeLogValue = (value = "") =>
+  String(value ?? "")
+    .replaceAll("\u0000", "")
+    .replaceAll("\r", "")
+    .replaceAll("\n", "")
+    .replaceAll("\t", "");
+
+const getClientUrl = () => {
+  const configuredUrl = process.env.CLIENT_URL?.trim();
+
+  if (!configuredUrl) {
+    throw new Error("CLIENT_URL environment variable is required");
+  }
+
+  let parsedUrl;
+
+  try {
+    parsedUrl = new URL(configuredUrl);
+  } catch {
+    throw new Error("CLIENT_URL must be a valid URL");
+  }
+
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const isLocalhost = [
+    "localhost",
+    "127.0.0.1",
+    "[::1]",
+  ].includes(parsedUrl.hostname);
+
+  if (
+    parsedUrl.protocol !== "https:" &&
+    !(isDevelopment && isLocalhost && parsedUrl.protocol === "http:")
+  ) {
+    throw new Error("CLIENT_URL must use HTTPS outside local development");
+  }
+
+  if (parsedUrl.username || parsedUrl.password) {
+    throw new Error("CLIENT_URL must not contain URL credentials");
+  }
+
+  if (parsedUrl.pathname !== "/" || parsedUrl.search || parsedUrl.hash) {
+    throw new Error("CLIENT_URL must contain only the frontend origin");
+  }
+
+  return parsedUrl.origin;
+};
 
 /**
  * Creates and returns a Nodemailer transporter instance configured from environment variables.
@@ -53,21 +106,27 @@ export const getTransporter = () => {
       },
     });
   } else {
-    // Development / fallback transporter: log clean metadata + preview summary
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "Email transport is not configured. Configure SMTP or EMAIL_SERVICE."
+      );
+    }
+
     console.info(
-      "ℹ️ [EmailService] SMTP credentials not fully configured in server/.env. Outbound emails will log to terminal."
+      "[EmailService] SMTP is not configured. Emails will be previewed without message content."
     );
+
     transporter = {
       sendMail: async (mailOptions) => {
         console.info(
-          `\n================= 📨 OUTBOUND EMAIL PREVIEW =================\n` +
-          `To:      ${mailOptions.to}\n` +
-          `Subject: ${mailOptions.subject}\n` +
-          `From:    ${mailOptions.from}\n` +
-          `-------------------------------------------------------------\n` +
-          `${mailOptions.text || "See HTML content"}\n` +
-          `=============================================================\n`
+          [
+            "[EmailService] Email preview",
+            `To: ${sanitizeLogValue(mailOptions.to)}`,
+            `Subject: ${sanitizeLogValue(mailOptions.subject)}`,
+            "Message body: [REDACTED]",
+          ].join("\n")
         );
+
         return { messageId: `mock-${Date.now()}` };
       },
     };
@@ -81,16 +140,18 @@ export const getTransporter = () => {
  */
 export const sendEmail = async ({ to, subject, html, text }) => {
   const mailer = getTransporter();
+
+  const smtpUser = process.env.SMTP_USER;
   const fromAddress =
     process.env.EMAIL_FROM ||
-    `"Rental Management" <${process.env.SMTP_USER || "noreply@rentalmanagement.com"}>`;
+    `"Rental Management" <${smtpUser || "noreply@rentalmanagement.com"}>`;
 
   const info = await mailer.sendMail({
     from: fromAddress,
     to,
     subject,
     html,
-    text: text || html.replace(/<[^>]*>?/gm, ""),
+    text: text ?? "",
   });
 
   return info;
@@ -284,38 +345,55 @@ export const generatePasswordResetTemplate = ({
  * @param {string} params.name - User name
  * @param {string} params.resetToken - Raw crypto token
  */
-export const sendPasswordResetEmail = async ({ to, name, resetToken }) => {
-  const clientUrl = process.env.CLIENT_URL;
-  const resetUrl = `${clientUrl}/reset-password?token=${encodeURIComponent(
-    resetToken
-  )}&email=${encodeURIComponent(to)}`;
+export const sendPasswordResetEmail = async ({
+  to,
+  name,
+  resetToken,
+}) => {
+  if (typeof to !== "string" || !to.trim()) {
+    throw new Error("A valid recipient email is required");
+  }
+
+  if (typeof resetToken !== "string" || !resetToken.trim()) {
+    throw new Error("A valid password-reset token is required");
+  }
+
+  const clientUrl = getClientUrl();
+  const resetUrl = new URL("/reset-password", `${clientUrl}/`);
+
+  resetUrl.searchParams.set("token", resetToken);
+  resetUrl.searchParams.set("email", to.trim());
+
+  const resetLink = resetUrl.toString();
+  const safeName = sanitizePlainText(name || "there");
+  const currentYear = new Date().getFullYear();
 
   const subject = "Reset your Rental Management password";
 
   const html = generatePasswordResetTemplate({
-    name,
-    resetUrl,
+    name: safeName,
+    resetUrl: resetLink,
     expirationHours: 1,
-    year: new Date().getFullYear(),
+    year: currentYear,
   });
 
   const plainText = [
-    `ACCOUNT SECURITY: Reset your password`,
-    ``,
-    `Hello ${name || "there"},`,
-    ``,
-    `We received a request to reset the password for your Rental Management account.`,
-    `To choose a new password, visit the link below:`,
-    ``,
-    resetUrl,
-    ``,
-    `This link expires in 1 hour. If you didn't request a password reset, you can safely ignore this email; your account will remain secure.`,
-    ``,
-    `© ${new Date().getFullYear()} Rental Management. All rights reserved.`,
+    "ACCOUNT SECURITY: Reset your password",
+    "",
+    `Hello ${safeName || "there"},`,
+    "",
+    "We received a request to reset the password for your Rental Management account.",
+    "To choose a new password, visit the link below:",
+    "",
+    resetLink,
+    "",
+    "This link expires in 1 hour. If you didn't request a password reset, you can safely ignore this email; your account will remain secure.",
+    "",
+    `© ${currentYear} Rental Management. All rights reserved.`,
   ].join("\n");
 
   return sendEmail({
-    to,
+    to: to.trim(),
     subject,
     html,
     text: plainText,
