@@ -45,7 +45,7 @@ export function AuthProvider({ children }) {
       }
     }
 
-    checkAuth()
+    void checkAuth()
 
     return () => {
       isMounted = false

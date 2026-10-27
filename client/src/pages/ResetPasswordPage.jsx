@@ -53,7 +53,7 @@ export default function ResetPasswordPage() {
       }
     }
 
-    checkToken()
+    void checkToken()
 
     return () => {
       isMounted = false

@@ -285,7 +285,7 @@ export const generatePasswordResetTemplate = ({
  * @param {string} params.resetToken - Raw crypto token
  */
 export const sendPasswordResetEmail = async ({ to, name, resetToken }) => {
-  const clientUrl = process.env.CLIENT_URL || "http://localhost:5173";
+  const clientUrl = process.env.CLIENT_URL;
   const resetUrl = `${clientUrl}/reset-password?token=${encodeURIComponent(
     resetToken
   )}&email=${encodeURIComponent(to)}`;

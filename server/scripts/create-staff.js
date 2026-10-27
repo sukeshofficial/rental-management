@@ -1,3 +1,4 @@
+
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -5,9 +6,19 @@ import connectDB from "../src/config/db.js";
 import User, { USER_ROLES, USER_STATUS } from "../src/models/user.model.js";
 import { generateToken } from "../src/services/auth.service.js";
 
-// Helper to upsert a single staff member
+/**
+ * Remove control characters from values before writing them to logs.
+ * This prevents newline-based log injection.
+ */
+const sanitizeLogValue = (value) =>
+  String(value ?? "").replace(/[\u0000-\u001F\u007F]/g, "");
+
+/**
+ * Helper to upsert a single staff member.
+ */
 const upsertStaff = async ({ name, email, phone, password }) => {
   const normalizedEmail = email.toLowerCase().trim();
+
   let staff = await User.findOne({ email: normalizedEmail });
 
   if (staff) {
@@ -15,9 +26,14 @@ const upsertStaff = async ({ name, email, phone, password }) => {
     staff.phone = phone;
     staff.role = USER_ROLES.INTERNAL_STAFF;
     staff.status = USER_STATUS.ACTIVE;
-    staff.password = password; // pre-save hook hashes modified password
+    staff.password = password;
+
+    // The model's pre-save hook is expected to hash modified passwords.
     await staff.save();
-    console.log(`✅ Updated existing account to internal_staff: ${normalizedEmail}`);
+
+    console.log(
+      `Updated existing internal_staff account: ${sanitizeLogValue(normalizedEmail)}`
+    );
   } else {
     staff = new User({
       name,
@@ -27,25 +43,38 @@ const upsertStaff = async ({ name, email, phone, password }) => {
       role: USER_ROLES.INTERNAL_STAFF,
       status: USER_STATUS.ACTIVE,
     });
+
     await staff.save();
-    console.log(`🎉 Created new internal_staff account: ${normalizedEmail}`);
+
+    console.log(
+      `Created new internal_staff account: ${sanitizeLogValue(normalizedEmail)}`
+    );
   }
 
+  // Preserve token generation for compatibility with the existing workflow.
+  // Never print the token or password to the console.
   const token = generateToken(staff);
-  return { staff, token, password };
+
+  return { staff, token };
 };
 
-// Check if CLI arguments were passed: node create-staff.js <email> <password> [name] [phone]
+// Usage:
+// node create-staff.js <email> <password> [name] [phone]
+
 const args = process.argv.slice(2);
 
 let staffList = [];
 
 if (args.length >= 2) {
-  // 1. Single custom user passed directly via CLI flags
-  const [email, password, name = "Staff Member", phone = "+1 555-0100"] = args;
+  const [
+    email,
+    password,
+    name = "Staff Member",
+    phone = "+1 555-0100",
+  ] = args;
+
   staffList = [{ email, password, name, phone }];
 } else {
-  // 2. Default batch list of multiple staff members across different departments
   staffList = [
     {
       name: "Operations Staff",
@@ -71,29 +100,34 @@ if (args.length >= 2) {
 try {
   await connectDB();
 
-  console.log("\n========================================================");
-  console.log(`PROVISIONING ${staffList.length} STAFF ACCOUNT(S)...`);
-  console.log("========================================================\n");
+  console.log(
+    `Provisioning ${staffList.length} staff account(s)...`
+  );
 
-  // Staff accounts are mutually independent (distinct emails), so they can be
-  // provisioned concurrently. Promise.all preserves insertion order in results.
-  const results = await Promise.all(staffList.map((member) => upsertStaff(member)));
+  // Promise.all preserves the original result ordering.
+  const results = await Promise.all(
+    staffList.map((member) => upsertStaff(member))
+  );
 
-  console.log("\n========================================================");
-  console.log("ALL PROVISIONED STAFF ACCOUNTS & TOKENS:");
-  console.log("========================================================");
-  results.forEach(({ staff, token, password }, index) => {
-    console.log(`\n[Staff Member #${index + 1}]`);
-    console.log(`Name:     ${staff.name}`);
-    console.log(`Email:    ${staff.email}`);
-    console.log(`Password: ${password}`);
-    console.log(`Role:     ${staff.role}`);
-    console.log(`Token:    ${token}`);
+  console.log("\nStaff provisioning completed:");
+
+  results.forEach(({ staff }, index) => {
+    console.log(`\nStaff member #${index + 1}`);
+    console.log(`Name:  ${sanitizeLogValue(staff.name)}`);
+    console.log(`Email: ${sanitizeLogValue(staff.email)}`);
+    console.log(`Role:  ${sanitizeLogValue(staff.role)}`);
+    console.log("Password: [REDACTED]");
+    console.log("Authentication token: [REDACTED]");
   });
-  console.log("\n========================================================\n");
 
-  process.exit(0);
+  console.log("\nAll staff accounts processed successfully.");
+  process.exitCode = 0;
 } catch (error) {
-  console.error("❌ Failed to provision staff:", error);
-  process.exit(1);
+  // Avoid logging raw error objects that could contain sensitive data.
+  console.error(
+    "Failed to provision staff:",
+    sanitizeLogValue(error?.message || "An unexpected error occurred")
+  );
+
+  process.exitCode = 1;
 }
